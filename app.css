@@ -1,0 +1,107 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #36a1ff;
+    font-size: 16pt;
+    font-family: sans-serif;
+    color: white;
+}
+
+.bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200vh;
+    background: radial-gradient(circle at center center, #00e8ff, #9100ff);
+    transition: top 0.3s ease-in-out;
+}
+
+.pages {
+    position: relative;
+    transition: top 0.3s ease-in-out;
+}
+
+.page {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+button, select {
+    border: 3px solid white;
+    border-radius: 0.4em;
+    background-color: transparent;
+    color: inherit;
+    padding: 0.3em 1em;
+    font-weight: 500;
+    font-size: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+}
+button:hover {
+    background-color: white;
+    color: #36a1ff
+}
+
+/* Not started page */
+.page.not-started .title {
+    margin-bottom: 0.5em;
+}
+
+/* The playing page */
+.page.playing .page-content {
+    align-items: flex-start;
+}
+.page.playing .rules {
+    width: 200px;
+    margin-bottom: 0.5em;
+}
+.page.playing .guesses-so-far {
+    margin-bottom: 0.5em;
+    line-height: 1.2em;
+}
+.page.playing .guesses-so-far .higher-or-lower {
+    font-size: 10pt;
+}
+.page.playing .pick-a-number {
+    margin-bottom: 0.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 3px solid white;
+}
+.page.playing .pick-a-number select {
+    margin-right: 0.5em;
+}
+.page.playing .start-over button {
+    font-size: 12pt;
+}
+
+/* winner page */
+.page.won .stats {
+    margin-bottom: 0.5em;
+    width: 250px;
+    text-align: center;
+}
+
+/* loser page */
+.page.lost .stats {
+    width: 300px;
+    text-align: center;
+}
+.page.lost .stats > * {
+    margin-bottom: 0.5em;
+}

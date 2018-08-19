@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <script src="hyperapp.js"></script>
+    <link rel="stylesheet" type="text/css" href="app.css" />
+</head>
+<body>
+    <script>
+
+        // some configurable constants:
+        const LOW = 1;
+        const HIGH = 20;
+        const NUMBER_OF_GUESSES = 6;
+
+        const app = hyperapp.app;
+        const h = hyperapp.h;
+
+        // initial app state:
+        const initialState = () => ({
+            valueToGuess: LOW-1,
+            guessesSoFar: [],
+            victory: false,
+            selectedValue: LOW,
+            loserMessage: ""
+        });
+
+        // actions available from the app:
+        const actions = {
+            guess: value => state => ({
+                guessesSoFar: state.guessesSoFar.concat([value]),
+                victory: value == state.valueToGuess
+            }),
+            start: _ => ({
+                valueToGuess: randomIntInRangeInclusive(LOW, HIGH),
+                guessesSoFar: [],
+                loserMessage: pickMessage(loserMessages),
+                victory: false
+            }),
+            backToBeginning: _ => initialState(),
+            selectValue: value => ({
+                selectedValue: value
+            })
+        }
+
+        // what does the app look like?
+        const view = (state, actions) => {
+
+            const isStart = state.valueToGuess === LOW-1;
+            const isFinished = state.victory;
+            const isLoser = state.guessesSoFar.length >= NUMBER_OF_GUESSES;
+            const numGuesses = state.guessesSoFar.length;
+
+            const offset =
+                  isStart ? 0
+                : isFinished ? -200
+                : isLoser ? -200
+                : -100
+
+            return (
+                h("div", { class: "root" }, [
+                    h("div", { class: "bg", style: { top: (offset/2)+"vh"} }),
+                    h("div", { class: "pages", style: { top: offset+"vh" } }, [
+                        h("div", { key: "1", class: "page not-started" }, [
+                            h("div", { class: "page-content" }, [
+                                h("div", { class: "title" }, "Jam's awesome guessing game"),
+                                h("button", { onclick: actions.start }, "Play")
+                            ])
+                        ]),
+                        h("div", { key: "2", class: "page playing" }, [
+                            h("div", { class: "page-content" }, [
+                                state.guessesSoFar.length
+                                    ? h("div", { key: "2.1", class: "guesses-so-far" }, [
+                                        h("div", { class: "guesses-so-far-title" }, "Guesses so far:"),
+                                        state.guessesSoFar.map(number =>
+                                            h("div", { class: "guess" }, [
+                                                h("span", {}, number+" "),
+                                                h("span", { class: "higher-or-lower" },
+                                                    number < state.valueToGuess ? "(higher)" : "(lower)"
+                                                )
+                                            ])
+                                        )
+                                    ])
+                                    : h("div", { class: "rules" }, "I've picked a number between "+LOW+" and "+HIGH+". Can you guess it?"),
+                                h("div", { key: "2.2", class: "pick-a-number" }, [
+                                    h("select", { onchange: (e) => actions.selectValue(Number(e.srcElement.value)) },
+                                        range(LOW, HIGH).map(i =>
+                                            h("option", { key: i, value: i, selected: i == state.selectedValue ? "selected" : "" }, String(i))
+                                        )
+                                    ),
+                                    h("button", { onclick: () => actions.guess(state.selectedValue) }, "Guess")
+                                ]),
+                                h("div", { class: "start-over" }, [
+                                    h("button", { onclick: actions.backToBeginning }, "Start over")
+                                ])
+                            ])
+                        ]),
+                        isFinished ?
+                            h("div", { key: "3", class: "page won" }, [
+                                h("div", { class: "page-content" }, [
+                                    h("div", { class: "stats" }, [
+                                        "Well done! The answer was "+
+                                        state.valueToGuess+
+                                        " and you got it in "+
+                                        numGuesses+
+                                        (numGuesses == 1 ? " guess!" : " guesses!"),
+                                    ]),
+                                    h("button", { onclick: actions.backToBeginning }, "Play again")
+                                ])
+                            ]) : null,
+                        isLoser ?
+                            h("div", { key: "4", class: "page lost" }, [
+                                h("div", { class: "page-content" }, [
+                                    h("div", { class: "stats" }, [
+                                        h("div", {}, "You lose! The answer was "+state.valueToGuess+"."),
+                                        h("div", {}, state.loserMessage)
+                                    ]),
+                                    h("button", { onclick: actions.backToBeginning }, "Play again")
+                                ])
+                            ]) : null
+                    ])
+                ])
+            );
+        }
+
+        // mount the app:
+        app(initialState(), actions, view, document.body);
+
+        // pick a random number in a range:
+        function randomIntInRangeInclusive(low, high) {
+            const range = high - low;
+            return Math.floor(Math.random() * (range + 1) + low)
+        }
+
+        // generate an array of range:
+        function range(low, high) {
+            let a = [];
+            for(let i = low; i <= high; i++) a.push(i);
+            return a;
+        }
+
+        function pickMessage(msgs) {
+            return dec(msgs[randomIntInRangeInclusive(0, msgs.length-1)])
+        }
+
+        // insult the loser:
+        const loserMessages = [
+            "ŭŌƠƞƍƕƚƑƐŌƙƛƚƗƑƥŌƏƛơƘƐŌƔƍƢƑŌƐƛƚƑŌƎƑƠƠƑƞŚ",
+            "ŴƍƢƑŌƥƛơŌƏƛƚƟƕƐƑƞƑƐŌƍŌƎƞƍƕƚŌƠƞƍƚƟƜƘƍƚƠū",
+            "ƅƛơŌƜơƠŌƠƔƑŌœƁœŌƕƚŌœƟƠơƜƕƐœŚ",
+            "ŴƛƣŌƍƞƑŌƥƛơŌƍŌƒơƚƏƠƕƛƚƕƚƓŌƔơƙƍƚŌƎƑƕƚƓū",
+            "ŵœƙŌƟơƞƜƞƕƟƑƐŌƥƛơŌƣƑƞƑŌƕƚƠƑƘƘƕƓƑƚƠŌƑƚƛơƓƔŌƠƛŌƚƍƢƕƓƍƠƑŌƠƛŌƠƔƕƟŌƜƍƓƑŚ",
+            "ŴƛƣŌƑƙƎƍƞƍƟƟƕƚƓŌƒƛƞŌƥƛơŚ",
+            "ŵœƘƘŌƓƕƢƑŌƥƛơŌƠƔƑŌƎƑƚƑƒƕƠŌƛƒŌƠƔƑŌƐƛơƎƠŌƍƚƐŌƍƟƟơƙƑŌƠƔƍƠŌƥƛơŌƍƞƑŌƕƘƘƕƠƑƞƍƠƑŚ",
+            "ŵŌƠƔƕƚƗŌƕƠœƟŌƠƕƙƑŌƥƛơŌƝơƕƠŌƠƔƑŌƕƚƠƑƞƚƑƠŚ",
+            "żƑƞƔƍƜƟŌƥƛơŌƟƔƛơƘƐŌƐƛŌƟƛƙƑƠƔƕƚƓŌƙƛƞƑŌƟơƕƠƑƐŌƠƛŌƥƛơƞŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƘƕƗƑŌƒƛƞƓƑƠƠƕƚƓŌƠƛŌƎƞƑƍƠƔƑŚ",
+            "ůƍƚŌŵŌƞƑƏƛƙƙƑƚƐŌƟƛƙƑƠƔƕƚƓŌƙƛƞƑŌƟơƕƠƑƐŌƠƛŌƥƛơƞŌƘƑƢƑ…ƛƒŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƘƕƗƑŌƎƑƏƛƙƕƚƓŌƍŌƀƞơƙƜŌƟơƜƜƛƞƠƑƞū",
+            "ƅƛơŌƟƔƛơƘƐŌƜƞƛƎƍƎƘƥŌƓƛŌƎƍƏƗŌƠƛŌƥƛơƞŌƏƛƘƛơƞƕƚƓŌƕƚŌƎƛƛƗƟŚ",
+            "ƃƔƍƠŌƥƛơŌƏƘƑƍƞƘƥŌƘƍƏƗŌƕƚŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƥƛơŌƏƛơƘƐŌƙ…ŌơƜŌƒƛƞŌƎƥŌƜƘƍƥƕƚƓŌƑƚƛơƓƔŌƠƕƙƑƟŌƠƛŌƎƑƍƠŌƠƔƑŌƛƐƐƟŚ"
+        ]
+
+        function enc(m) {
+            let o = "";
+            for(let i = 0; i < m.length; i++) {
+                o += String.fromCharCode(m.charCodeAt(i) + 300)
+            }
+            return o;
+        }
+        function dec(m) {
+            let o = "";
+            for(let i = 0; i < m.length; i++) {
+                o += String.fromCharCode(m.charCodeAt(i) - 300)
+            }
+            return o;
+        }
+
+    </script>
+</body>
+</html>
