@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width">
     <script src="hyperapp.js"></script>
     <link rel="stylesheet" type="text/css" href="app.css" />
 </head>
@@ -83,7 +84,7 @@
                                     ])
                                     : h("div", { class: "rules" }, "I've picked a number between "+LOW+" and "+HIGH+". Can you guess it?"),
                                 h("div", { key: "2.2", class: "pick-a-number" }, [
-                                    h("select", { onchange: (e) => actions.selectValue(Number(e.srcElement.value)) },
+                                    h("select", { onchange: (e) => actions.selectValue(Number(e.target.value)) },
                                         range(LOW, HIGH).map(i =>
                                             h("option", { key: i, value: i, selected: i == state.selectedValue ? "selected" : "" }, String(i))
                                         )
