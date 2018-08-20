@@ -50,7 +50,6 @@
             const isStart = state.valueToGuess === LOW-1;
             const isFinished = state.victory;
             const isLoser = state.guessesSoFar.length >= NUMBER_OF_GUESSES;
-            const numGuesses = state.guessesSoFar.length;
 
             const offset =
                   isStart ? 0
@@ -62,64 +61,80 @@
                 h("div", { class: "root" }, [
                     h("div", { class: "bg", style: { top: (offset/2)+"vh"} }),
                     h("div", { class: "pages", style: { top: offset+"vh" } }, [
-                        h("div", { key: "1", class: "page not-started" }, [
-                            h("div", { class: "page-content" }, [
-                                h("div", { class: "title" }, "Jam's awesome guessing game"),
-                                h("button", { onclick: actions.start }, "Play")
-                            ])
-                        ]),
-                        h("div", { key: "2", class: "page playing" }, [
-                            h("div", { class: "page-content" }, [
-                                state.guessesSoFar.length
-                                    ? h("div", { key: "2.1", class: "guesses-so-far" }, [
-                                        h("div", { class: "guesses-so-far-title" }, "Guesses so far:"),
-                                        state.guessesSoFar.map(number =>
-                                            h("div", { class: "guess" }, [
-                                                h("span", {}, number+" "),
-                                                h("span", { class: "higher-or-lower" },
-                                                    number < state.valueToGuess ? "(higher)" : "(lower)"
-                                                )
-                                            ])
-                                        )
-                                    ])
-                                    : h("div", { class: "rules" }, "I've picked a number between "+LOW+" and "+HIGH+". Can you guess it?"),
-                                h("div", { key: "2.2", class: "pick-a-number" }, [
-                                    h("select", { onchange: (e) => actions.selectValue(Number(e.target.value)) },
-                                        range(LOW, HIGH).map(i =>
-                                            h("option", { key: i, value: i, selected: i == state.selectedValue ? "selected" : "" }, String(i))
-                                        )
-                                    ),
-                                    h("button", { onclick: () => actions.guess(state.selectedValue) }, "Guess")
-                                ]),
-                                h("div", { class: "start-over" }, [
-                                    h("button", { onclick: actions.backToBeginning }, "Start over")
-                                ])
-                            ])
-                        ]),
-                        isFinished ?
-                            h("div", { key: "3", class: "page won" }, [
-                                h("div", { class: "page-content" }, [
-                                    h("div", { class: "stats" }, [
-                                        "Well done! The answer was "+
-                                        state.valueToGuess+
-                                        " and you got it in "+
-                                        numGuesses+
-                                        (numGuesses == 1 ? " guess!" : " guesses!"),
-                                    ]),
-                                    h("button", { onclick: actions.backToBeginning }, "Play again")
-                                ])
-                            ]) : null,
-                        isLoser ?
-                            h("div", { key: "4", class: "page lost" }, [
-                                h("div", { class: "page-content" }, [
-                                    h("div", { class: "stats" }, [
-                                        h("div", {}, "You lose! The answer was "+state.valueToGuess+"."),
-                                        h("div", {}, state.loserMessage)
-                                    ]),
-                                    h("button", { onclick: actions.backToBeginning }, "Play again")
-                                ])
-                            ]) : null
+                        notStartedPage(state,actions),
+                        playingPage(state,actions),
+                        endPage(state,actions)
                     ])
+                ])
+            );
+        }
+
+        // Page 1: the initial page
+        const notStartedPage = (state, actions) =>
+            h("div", { key: "1", class: "page not-started" }, [
+                h("div", { class: "page-content" }, [
+                    h("div", { class: "title" }, "Jam's awesome guessing game"),
+                    h("button", { onclick: actions.start }, "Play")
+                ])
+            ]);
+
+        // Page 2: we're playing the game
+        const playingPage = (state, actions) =>
+            h("div", { key: "2", class: "page playing" }, [
+                h("div", { class: "page-content" }, [
+                    state.guessesSoFar.length
+                        ? h("div", { key: "2.1", class: "guesses-so-far" }, [
+                            h("div", { class: "guesses-so-far-title" }, "Guesses so far:"),
+                            state.guessesSoFar.map(number =>
+                                h("div", { class: "guess" }, [
+                                    h("span", {}, number+" "),
+                                    h("span", { class: "higher-or-lower" },
+                                        number < state.valueToGuess ? "(higher)" : "(lower)"
+                                    )
+                                ])
+                            )
+                        ])
+                        : h("div", { class: "rules" }, "I've picked a number between "+LOW+" and "+HIGH+". Can you guess it?"),
+                    h("div", { key: "2.2", class: "pick-a-number" }, [
+                        h("select", { onchange: (e) => actions.selectValue(Number(e.target.value)) },
+                            range(LOW, HIGH).map(i =>
+                                h("option", { key: i, value: i, selected: i == state.selectedValue ? "selected" : "" }, String(i))
+                            )
+                        ),
+                        h("button", { onclick: () => actions.guess(state.selectedValue) }, "Guess")
+                    ]),
+                    h("div", { class: "start-over" }, [
+                        h("button", { onclick: actions.backToBeginning }, "Start over")
+                    ])
+                ])
+            ])
+
+        // Page 3: we've finished!
+        const endPage = (state,actions) => {
+
+            const isLoser = state.guessesSoFar.length >= NUMBER_OF_GUESSES;
+            const numGuesses = state.guessesSoFar.length;
+
+            return (
+                h("div", { key: "3", class: "page "+(isLoser ? "lost" : "won") }, [
+                    isLoser
+                        ?  h("div", { class: "page-content" }, [
+                            h("div", { class: "stats" }, [
+                                h("div", {}, "You lose! The answer was "+state.valueToGuess+"."),
+                                h("div", {}, state.loserMessage)
+                            ]),
+                            h("button", { onclick: actions.backToBeginning }, "Play again")
+                        ])
+                        : h("div", { class: "page-content" }, [
+                            h("div", { class: "stats" }, [
+                                "Well done! The answer was "+
+                                state.valueToGuess+
+                                " and you got it in "+
+                                numGuesses+
+                                (numGuesses == 1 ? " guess!" : " guesses!"),
+                            ]),
+                            h("button", { onclick: actions.backToBeginning }, "Play again")
+                        ])
                 ])
             );
         }
@@ -155,10 +170,10 @@
             "ŵœƘƘŌƓƕƢƑŌƥƛơŌƠƔƑŌƎƑƚƑƒƕƠŌƛƒŌƠƔƑŌƐƛơƎƠŌƍƚƐŌƍƟƟơƙƑŌƠƔƍƠŌƥƛơŌƍƞƑŌƕƘƘƕƠƑƞƍƠƑŚ",
             "ŵŌƠƔƕƚƗŌƕƠœƟŌƠƕƙƑŌƥƛơŌƝơƕƠŌƠƔƑŌƕƚƠƑƞƚƑƠŚ",
             "żƑƞƔƍƜƟŌƥƛơŌƟƔƛơƘƐŌƐƛŌƟƛƙƑƠƔƕƚƓŌƙƛƞƑŌƟơƕƠƑƐŌƠƛŌƥƛơƞŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƘƕƗƑŌƒƛƞƓƑƠƠƕƚƓŌƠƛŌƎƞƑƍƠƔƑŚ",
-            "ůƍƚŌŵŌƞƑƏƛƙƙƑƚƐŌƟƛƙƑƠƔƕƚƓŌƙƛƞƑŌƟơƕƠƑƐŌƠƛŌƥƛơƞŌƘƑƢƑ…ƛƒŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƘƕƗƑŌƎƑƏƛƙƕƚƓŌƍŌƀƞơƙƜŌƟơƜƜƛƞƠƑƞū",
+            "ůƍƚŌŵŌƞƑƏƛƙƙƑƚƐŌƟƛƙƑƠƔƕƚƓŌƙƛƞƑŌƟơƕƠƑƐŌƠƛŌƥƛơƞŌƘƑƢƑƘŌƛƒŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƘƕƗƑŌƎƑƏƛƙƕƚƓŌƍŌƀƞơƙƜŌƟơƜƜƛƞƠƑƞū",
             "ƅƛơŌƟƔƛơƘƐŌƜƞƛƎƍƎƘƥŌƓƛŌƎƍƏƗŌƠƛŌƥƛơƞŌƏƛƘƛơƞƕƚƓŌƕƚŌƎƛƛƗƟŚ",
             "ƃƔƍƠŌƥƛơŌƏƘƑƍƞƘƥŌƘƍƏƗŌƕƚŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƥƛơŌƏƛơƘƐŌƙ…ŌơƜŌƒƛƞŌƎƥŌƜƘƍƥƕƚƓŌƑƚƛơƓƔŌƠƕƙƑƟŌƠƛŌƎƑƍƠŌƠƔƑŌƛƐƐƟŚ"
-        ]
+        ];
 
         function enc(m) {
             let o = "";
