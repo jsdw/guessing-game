@@ -49,8 +49,9 @@ button, select {
     font-family: inherit;
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
-    appearance: none;
     -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     outline: none;
 }
 button:hover {
