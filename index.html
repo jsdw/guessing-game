@@ -97,7 +97,9 @@
                                         )
                                     ])
                                 ),
-                                "You have "+guessesLeft+(guessesLeft == 1 ? " guess left" : " guesses left")
+                                h("div", { class: "geusses-left" },
+                                    "Remaining Guesses: "+guessesLeft
+                                )
                             ])
                             : h("div", { class: "rules" }, "I've picked a number between "+LOW+" and "+HIGH+". Can you guess it?"),
                         h("div", { key: "2.2", class: "pick-a-number" }, [
