@@ -79,35 +79,42 @@
             ]);
 
         // Page 2: we're playing the game
-        const playingPage = (state, actions) =>
-            h("div", { key: "2", class: "page playing" }, [
-                h("div", { class: "page-content" }, [
-                    state.guessesSoFar.length
-                        ? h("div", { key: "2.1", class: "guesses-so-far" }, [
-                            h("div", { class: "guesses-so-far-title" }, "Guesses so far:"),
-                            state.guessesSoFar.map(number =>
-                                h("div", { class: "guess" }, [
-                                    h("span", {}, number+" "),
-                                    h("span", { class: "higher-or-lower" },
-                                        number < state.valueToGuess ? "(higher)" : "(lower)"
-                                    )
-                                ])
-                            )
+        const playingPage = (state, actions) => {
+
+            const guessesLeft = NUMBER_OF_GUESSES - state.guessesSoFar.length;
+
+            return (
+                h("div", { key: "2", class: "page playing" }, [
+                    h("div", { class: "page-content" }, [
+                        state.guessesSoFar.length
+                            ? h("div", { key: "2.1", class: "guesses-so-far" }, [
+                                h("div", { class: "guesses-so-far-title" }, "Guesses so far:"),
+                                state.guessesSoFar.map(number =>
+                                    h("div", { class: "guess" }, [
+                                        h("span", {}, number+" "),
+                                        h("span", { class: "higher-or-lower" },
+                                            number < state.valueToGuess ? "(higher)" : "(lower)"
+                                        )
+                                    ])
+                                ),
+                                "You have "+guessesLeft+(guessesLeft == 1 ? " guess left" : " guesses left")
+                            ])
+                            : h("div", { class: "rules" }, "I've picked a number between "+LOW+" and "+HIGH+". Can you guess it?"),
+                        h("div", { key: "2.2", class: "pick-a-number" }, [
+                            h("select", { onchange: (e) => actions.selectValue(Number(e.target.value)) },
+                                range(LOW, HIGH).map(i =>
+                                    h("option", { key: i, value: i, selected: i == state.selectedValue ? "selected" : "" }, String(i))
+                                )
+                            ),
+                            h("button", { onclick: () => actions.guess(state.selectedValue) }, "Guess")
+                        ]),
+                        h("div", { class: "start-over" }, [
+                            h("button", { onclick: actions.backToBeginning }, "Start over")
                         ])
-                        : h("div", { class: "rules" }, "I've picked a number between "+LOW+" and "+HIGH+". Can you guess it?"),
-                    h("div", { key: "2.2", class: "pick-a-number" }, [
-                        h("select", { onchange: (e) => actions.selectValue(Number(e.target.value)) },
-                            range(LOW, HIGH).map(i =>
-                                h("option", { key: i, value: i, selected: i == state.selectedValue ? "selected" : "" }, String(i))
-                            )
-                        ),
-                        h("button", { onclick: () => actions.guess(state.selectedValue) }, "Guess")
-                    ]),
-                    h("div", { class: "start-over" }, [
-                        h("button", { onclick: actions.backToBeginning }, "Start over")
                     ])
                 ])
-            ])
+            );
+        }
 
         // Page 3: we've finished!
         const endPage = (state,actions) => {
@@ -156,39 +163,40 @@
         }
 
         function pickMessage(msgs) {
-            return dec(msgs[randomIntInRangeInclusive(0, msgs.length-1)])
+            return msgs[randomIntInRangeInclusive(0, msgs.length-1)]
         }
 
         // insult the loser:
         const loserMessages = [
-            "ŭŌƠƞƍƕƚƑƐŌƙƛƚƗƑƥŌƏƛơƘƐŌƔƍƢƑŌƐƛƚƑŌƎƑƠƠƑƞŚ",
-            "ŴƍƢƑŌƥƛơŌƏƛƚƟƕƐƑƞƑƐŌƍŌƎƞƍƕƚŌƠƞƍƚƟƜƘƍƚƠū",
-            "ƅƛơŌƜơƠŌƠƔƑŌœƁœŌƕƚŌœƟƠơƜƕƐœŚ",
-            "ŴƛƣŌƍƞƑŌƥƛơŌƍŌƒơƚƏƠƕƛƚƕƚƓŌƔơƙƍƚŌƎƑƕƚƓū",
-            "ŵœƙŌƟơƞƜƞƕƟƑƐŌƥƛơŌƣƑƞƑŌƕƚƠƑƘƘƕƓƑƚƠŌƑƚƛơƓƔŌƠƛŌƚƍƢƕƓƍƠƑŌƠƛŌƠƔƕƟŌƜƍƓƑŚ",
-            "ŴƛƣŌƑƙƎƍƞƍƟƟƕƚƓŌƒƛƞŌƥƛơŚ",
-            "ŵœƘƘŌƓƕƢƑŌƥƛơŌƠƔƑŌƎƑƚƑƒƕƠŌƛƒŌƠƔƑŌƐƛơƎƠŌƍƚƐŌƍƟƟơƙƑŌƠƔƍƠŌƥƛơŌƍƞƑŌƕƘƘƕƠƑƞƍƠƑŚ",
-            "ŵŌƠƔƕƚƗŌƕƠœƟŌƠƕƙƑŌƥƛơŌƝơƕƠŌƠƔƑŌƕƚƠƑƞƚƑƠŚ",
-            "żƑƞƔƍƜƟŌƥƛơŌƟƔƛơƘƐŌƐƛŌƟƛƙƑƠƔƕƚƓŌƙƛƞƑŌƟơƕƠƑƐŌƠƛŌƥƛơƞŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƘƕƗƑŌƒƛƞƓƑƠƠƕƚƓŌƠƛŌƎƞƑƍƠƔƑŚ",
-            "ůƍƚŌŵŌƞƑƏƛƙƙƑƚƐŌƟƛƙƑƠƔƕƚƓŌƙƛƞƑŌƟơƕƠƑƐŌƠƛŌƥƛơƞŌƘƑƢƑƘŌƛƒŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƘƕƗƑŌƎƑƏƛƙƕƚƓŌƍŌƀƞơƙƜŌƟơƜƜƛƞƠƑƞū",
-            "ƅƛơŌƟƔƛơƘƐŌƜƞƛƎƍƎƘƥŌƓƛŌƎƍƏƗŌƠƛŌƥƛơƞŌƏƛƘƛơƞƕƚƓŌƕƚŌƎƛƛƗƟŚ",
-            "ƃƔƍƠŌƥƛơŌƏƘƑƍƞƘƥŌƘƍƏƗŌƕƚŌƕƚƠƑƘƘƕƓƑƚƏƑŘŌƥƛơŌƏƛơƘƐŌƙ…ŌơƜŌƒƛƞŌƎƥŌƜƘƍƥƕƚƓŌƑƚƛơƓƔŌƠƕƙƑƟŌƠƛŌƎƑƍƠŌƠƔƑŌƛƐƐƟŚ"
+            "A trained monkey could have done better.",
+            "Have you considered a brain transplant?",
+            "You put the 'U' in 'stupid'.",
+            "You put the 'me' in 'stupid'",
+            "How are you a functioning human being?",
+            "I'm surprised you were intelligent enough to navigate to this page.",
+            "How embarassing for you.",
+            "I'll give you the benefit of the doubt and assume that you are illiterate.",
+            "I think it's time you quit the internet.",
+            "Perhaps you should do something more suited to your intelligence, like forgetting to breathe.",
+            "Can I recommend something more suited to your level of intelligence, like becoming a Trump supporter?",
+            "You should probably go back to your colouring in books.",
+            "What you clearly lack in intelligence, you can make up for by playing enough times to beat the odds.",
+            "I'll give you the benefit of the doubt and assume that you are under the age of 3.",
+            "Welcome to stupidsville, population 1.",
+            "Perhaps you didn't realise that winning is the aim of the game?",
+            "Perhaps you should play something more suited to your level of intelligence, like 'sit-there-and-do-nothing'",
+            "I don't think it's healthy to be as stupid as you.",
+            "I have no words for how stupid you are (except these ones).",
+            "Did you forget to get the stupid vaccine?",
+            "If that was your best shot, there is no hope left for humanity.",
+            "If I was you, I'd avoid having children. You really shouldn't pass on this degree of stupidity.",
+            "All abourd the stupid train, destination Idiotsville.",
+            "I'll assume that you don't know how numbers work.",
+            "Perhaps you should go back to pre-school?",
+            "It might be worth going away and reflecting on how stupid you are for a while.",
+            "Congratulations! You have joined a select group of idiots that somehow managed to lose at this.",
+            "You do realise that this isn't a game of chance, right?"
         ];
-
-        function enc(m) {
-            let o = "";
-            for(let i = 0; i < m.length; i++) {
-                o += String.fromCharCode(m.charCodeAt(i) + 300)
-            }
-            return o;
-        }
-        function dec(m) {
-            let o = "";
-            for(let i = 0; i < m.length; i++) {
-                o += String.fromCharCode(m.charCodeAt(i) - 300)
-            }
-            return o;
-        }
 
     </script>
 </body>
